@@ -1,5 +1,5 @@
 // Calendar tab: month view with muscle-colour dots, plus backup / restore.
-import { state, exportData, parseBackup, restoreData } from './store.js';
+import { state, save, exportData, parseBackup, restoreData } from './store.js';
 import { CATS, catClass, esc, ICONS, toast, toKey, todayKey, fromKey, fmtDay } from './util.js';
 import { saveFile } from './platform.js';
 
@@ -58,13 +58,9 @@ export function renderCalendar(view, ctx) {
       <div class="grow"><div style="font-weight:700">workout${workouts === 1 ? '' : 's'} this month</div><div class="muted small tabular">${sets} sets logged</div></div>
     </div>
 
-    <div class="cal-head" aria-hidden="true">${weekdays.map((w) => `<span>${w}</span>`).join('')}</div>
-    <div class="cal">${cells.join('')}</div>
-    <div class="legend">${CATS.map((c) => `<span><i class="dot ${catClass(c)}"></i>${c}</span>`).join('')}</div>
-
-    <h2 class="section-title">Backup</h2>
-    <div class="card stack">
-      <div class="muted small">Everything lives only on this phone. Save a backup file now and then (your API key is never included).</div>
+    <div class="card stack" style="margin-bottom:16px">
+      <div class="row"><strong class="grow">Backup</strong><span class="muted small tabular">${state.settings.lastBackup ? 'Last saved ' + esc(fmtDay(state.settings.lastBackup)) : 'Never saved'}</span></div>
+      <div class="muted small">Your data lives only on this phone. The file goes to your Downloads folder (API key never included).</div>
       <div class="row">
         <button class="btn grow" data-act="backup">Save backup</button>
         <button class="btn grow" data-act="restore">Restore</button>
@@ -78,6 +74,10 @@ export function renderCalendar(view, ctx) {
           <div class="row"><button class="btn ghost grow" data-act="restore-cancel">Cancel</button><button class="btn danger grow" data-act="restore-go">Replace my data</button></div>
         </div>` : ''}
     </div>
+    <div class="cal-head" aria-hidden="true">${weekdays.map((w) => `<span>${w}</span>`).join('')}</div>
+    <div class="cal">${cells.join('')}</div>
+    <div class="legend">${CATS.map((c) => `<span><i class="dot ${catClass(c)}"></i>${c}</span>`).join('')}</div>
+
   `;
   view.replaceChildren(root);
 
@@ -107,7 +107,10 @@ export function renderCalendar(view, ctx) {
         const name = `liftlog-backup-${todayKey()}.json`;
         try {
           await saveFile(name, JSON.stringify(exportData(), null, 1));
-          toast(`Saved ${name}`);
+          state.settings.lastBackup = todayKey();
+          save('settings');
+          rerender();
+          toast(`Saved ${name} to Downloads`);
         } catch (err) {
           toast('Could not save the backup: ' + err.message);
         }
