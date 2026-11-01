@@ -3,8 +3,8 @@
 
 const DB_NAME = 'liftlog';
 const STORE = 'kv';
-const KEYS = ['days', 'library', 'checkins', 'settings', 'report'];
-const DEFAULTS = () => ({ days: {}, library: {}, checkins: [], settings: {}, report: null });
+const KEYS = ['days', 'library', 'checkins', 'settings', 'report', 'plan', 'coach'];
+const DEFAULTS = () => ({ days: {}, library: {}, checkins: [], settings: {}, report: null, plan: {}, coach: { profile: {}, memories: [], chat: null } });
 
 export const state = DEFAULTS();
 let db = null;
@@ -49,6 +49,10 @@ export async function load() {
       try { const v = localStorage.getItem('liftlog:' + k); if (v) state[k] = JSON.parse(v); } catch { /* ignore */ }
     }
   }
+  // Fill in any keys added in newer versions.
+  const fresh = DEFAULTS();
+  for (const k of KEYS) if (state[k] == null) state[k] = fresh[k];
+  state.coach = { ...fresh.coach, ...state.coach };
   // Ask the browser not to evict our data under storage pressure.
   try { await navigator.storage?.persist?.(); } catch { /* ignore */ }
 }
@@ -78,7 +82,7 @@ export function exportData() {
   const { apiKey, ...settings } = state.settings || {}; // never put the API key in a backup file
   return {
     app: 'liftlog', version: 1, exportedAt: new Date().toISOString(),
-    data: { days: state.days, library: state.library, checkins: state.checkins, settings, report: state.report },
+    data: { days: state.days, library: state.library, checkins: state.checkins, settings, report: state.report, plan: state.plan, coach: state.coach },
   };
 }
 
@@ -101,5 +105,7 @@ export async function restoreData(obj) {
   state.checkins = d.checkins || fresh.checkins;
   state.settings = { ...(d.settings || {}), ...(apiKey ? { apiKey } : {}) };
   state.report = d.report || null;
+  state.plan = d.plan || fresh.plan;
+  state.coach = { ...fresh.coach, ...(d.coach || {}) };
   for (const k of KEYS) await saveNow(k);
 }
