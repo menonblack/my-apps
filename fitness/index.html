@@ -2,46 +2,37 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0e1116">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="theme-color" content="#0e1116" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f6f8fa" media="(prefers-color-scheme: light)">
+<meta name="color-scheme" content="dark light">
 <title>Lift Log</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-<style>
-  :root { color-scheme: dark light; --bg:#0e1116; --fg:#e6edf3; --accent:#14b8a6; }
-  @media (prefers-color-scheme: light) { :root { --bg:#f6f8fa; --fg:#0e1116; --accent:#0d9488; } }
-  body { margin:0; min-height:100vh; display:grid; place-items:center; background:var(--bg); color:var(--fg);
-         font-family: system-ui, sans-serif; padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom); text-align:center; }
-  h1 { font-family: "Roboto Condensed","Arial Narrow",sans-serif; font-stretch:condensed; color:var(--accent); font-size:2.5rem; margin:0 0 8px; }
-  p { opacity:.8; }
-  #install { font: 600 1.2rem system-ui; background:var(--accent); color:#04201d; border:0; border-radius:14px; padding:16px 28px; min-height:56px; margin-top:12px; }
-  #hint { max-width: 22rem; line-height:1.5; }
-  #status { font-variant-numeric: tabular-nums; }
-</style>
+<link rel="preload" href="fonts/roboto-condensed-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<main>
-  <h1>Lift Log</h1>
-  <p>Hello world — install test build.</p>
-  <p id="status">Checking offline support…</p>
-  <button id="install" hidden>Install Lift Log</button>
-  <p id="hint" hidden>To install: tap Chrome's ⋮ menu (top right) → <b>Add to Home screen</b> → <b>Install</b>.</p>
-</main>
-<script>
-  const s = document.getElementById('status');
-  const standalone = matchMedia('(display-mode: standalone)').matches;
-  const btn = document.getElementById('install'), hint = document.getElementById('hint');
-  let deferred = null;
-  if (!standalone) hint.hidden = false;
-  addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferred = e; btn.hidden = false; hint.hidden = true; });
-  btn.addEventListener('click', async () => { if (!deferred) return; deferred.prompt(); await deferred.userChoice; deferred = null; btn.hidden = true; });
-  addEventListener('appinstalled', () => { btn.hidden = true; hint.hidden = true; s.textContent = 'Installed ✓ — open Lift Log from your home screen'; });
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready)
-      .then(() => { s.textContent = (standalone ? 'Running as installed app' : 'Running in browser') + ' · offline ready ✓'; })
-      .catch((e) => { s.textContent = 'Service worker failed: ' + e.message; });
-  } else s.textContent = 'No service worker support';
-</script>
+<main id="view" aria-live="polite"></main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+
+<nav class="tabbar" aria-label="Main">
+  <button class="tab" data-tab="log" aria-label="Log">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10h2v4H3zM19 10h2v4h-2zM6 7h2.5v10H6zM15.5 7H18v10h-2.5zM8.5 11h7v2h-7z"/></svg>
+    <span>Log</span>
+  </button>
+  <button class="tab" data-tab="calendar" aria-label="Calendar">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3zm12 8H5v9h14zM5 8h14V6H5z"/></svg>
+    <span>Calendar</span>
+  </button>
+  <button class="tab" data-tab="body" aria-label="Body">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a3 3 0 1 1 0 6 3 3 0 0 1 0-6zM5 9h14v2h-4.5v11h-2v-6h-1v6h-2V11H5z"/></svg>
+    <span>Body</span>
+  </button>
+</nav>
+
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
