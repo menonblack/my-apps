@@ -1,9 +1,11 @@
 // Offline support. Bump VERSION on every deploy so phones fetch the new files.
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = 'liftlog-' + VERSION;
 const ASSETS = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
   'js/app.js', 'js/store.js', 'js/util.js', 'js/log.js', 'js/calendar.js', 'js/platform.js',
+  'js/body.js', 'js/coach.js', 'js/coach-agent.js', 'js/settings.js', 'js/claude.js', 'js/stats.js', 'js/plan.js',
+  'vendor/anthropic-sdk.js',
   'fonts/roboto-condensed-latin-600-normal.woff2', 'fonts/roboto-condensed-latin-700-normal.woff2',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png', 'icons/apple-touch-icon.png',
 ];

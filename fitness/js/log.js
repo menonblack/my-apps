@@ -4,6 +4,7 @@ import {
   CATS, SEED, catClass, esc, uid, num, fmtNum, normName, nameKey, ICONS, toast, twoStep,
   todayKey, addDays, fmtDay, relDay, isValidKey,
 } from './util.js';
+import { getPlan, setPlan, startPlan, planItemText } from './plan.js';
 
 const ui = { addCat: 'Other', catTouched: false, copyOpen: false, copyDate: '' };
 
@@ -131,6 +132,23 @@ function exCard(ex, date) {
   </section>`;
 }
 
+function planCard(date) {
+  const p = getPlan(date);
+  if (!p) return '';
+  const status = p.status || 'planned';
+  const label = status === 'skipped' ? 'Skipped' : status === 'done' ? 'Planned · started' : 'Planned';
+  return `<section class="card plan ${status}">
+    <div class="row"><div class="grow">
+      <div class="plan-k">${label}${p.by === 'coach' ? ' · by Coach' : ''}</div>
+      <div class="ex-name">${esc(p.title || 'Workout')}</div>
+    </div><button class="icon-btn" data-act="plan-clear" aria-label="Remove plan">${ICONS.trash}</button></div>
+    ${p.items?.length ? `<ul class="plan-items">${p.items.map((it) => `<li class="${catClass(it.cat)}"><span class="dot"></span>${esc(planItemText(it))}${it.notes ? ` <span class="muted">· ${esc(it.notes)}</span>` : ''}</li>`).join('')}</ul>` : ''}
+    ${p.notes ? `<div class="small muted">${esc(p.notes)}</div>` : ''}
+    ${status === 'skipped' ? `<div class="small">${p.skipReason ? 'Reason: ' + esc(p.skipReason) : ''}</div><button class="btn block" data-act="plan-unskip">Un-skip</button>` : ''}
+    ${status === 'planned' ? `<div class="row" style="margin-top:8px">${p.items?.length ? '<button class="btn primary grow" data-act="plan-start">Start workout</button>' : ''}<button class="btn grow" data-act="plan-skip">Skip</button></div>` : ''}
+  </section>`;
+}
+
 function catButtons() {
   return CATS.map((c) => `<button type="button" class="${catClass(c)}" data-cat="${c}" aria-pressed="${ui.addCat === c}"><span class="dot"></span>${c}</button>`).join('');
 }
@@ -154,6 +172,8 @@ export function renderLog(view, ctx) {
       <button class="icon-btn" data-act="next-day" aria-label="Next day">${ICONS.right}</button>
       <button class="pill" data-act="today" ${date === today ? 'disabled' : ''}>Today</button>
     </header>
+
+    ${planCard(date)}
 
     ${exs.length ? exs.map((e) => exCard(e, date)).join('') : `
       <div class="empty">
@@ -285,6 +305,26 @@ function bind(view, ctx, host) {
         toast(`Copied ${n} exercise${n > 1 ? 's' : ''} from ${fmtDay(prev)}`);
         break;
       }
+      case 'plan-start': {
+        const n = startPlan(date);
+        rerender();
+        toast(`Added ${n} planned exercise${n === 1 ? '' : 's'}. Edit the sets as you go.`);
+        break;
+      }
+      case 'plan-skip': {
+        const prev = setPlan(date, { ...getPlan(date), status: 'skipped', skipReason: '' });
+        rerender();
+        toast('Workout skipped', { label: 'Undo', run: () => { setPlan(date, prev); rerender(); } });
+        break;
+      }
+      case 'plan-unskip': setPlan(date, { ...getPlan(date), status: 'planned', skipReason: '' }); rerender(); break;
+      case 'plan-clear':
+        twoStep(btn, () => {
+          const prev = setPlan(date, null);
+          rerender();
+          toast('Plan removed', { label: 'Undo', run: () => { setPlan(date, prev); rerender(); } });
+        }, 'Remove plan?');
+        break;
       case 'copy-open': ui.copyOpen = true; rerender(); break;
       case 'copy-cancel': ui.copyOpen = false; rerender(); break;
       case 'copy-go': {

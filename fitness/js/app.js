@@ -3,13 +3,18 @@ import { load } from './store.js';
 import { todayKey, isValidKey, toast, esc } from './util.js';
 import { renderLog } from './log.js';
 import { renderCalendar } from './calendar.js';
+import { renderBody } from './body.js';
+import { renderCoach } from './coach.js';
+import { renderSettings } from './settings.js';
 
 const view = document.getElementById('view');
 const ctx = {
   tab: 'log',
+  prevTab: 'log',
   date: todayKey(),
   go(tab, date) {
     if (date && isValidKey(date)) ctx.date = date;
+    if (tab === 'settings' && ctx.tab !== 'settings') ctx.prevTab = ctx.tab;
     ctx.tab = tab;
     render();
     window.scrollTo(0, 0);
@@ -17,13 +22,7 @@ const ctx = {
   setDate(date) { ctx.go('log', date); },
 };
 
-function renderBody(v) {
-  v.innerHTML = `<header class="topbar"><div class="title"><h1>Body</h1></div></header>
-    <div class="card empty"><div class="big">Coming in the next update</div>
-    <div class="muted small">Photo check-ins, weight &amp; waist trends and Claude progress reports.</div></div>`;
-}
-
-const RENDER = { log: renderLog, calendar: renderCalendar, body: renderBody };
+const RENDER = { log: renderLog, calendar: renderCalendar, body: renderBody, coach: renderCoach, settings: renderSettings };
 
 function render() {
   document.querySelectorAll('.tab').forEach((t) => {

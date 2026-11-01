@@ -20,11 +20,12 @@ function cell(date, inMonth, today) {
   const ex = state.days[toKey(date)]?.ex || [];
   const cats = CATS.filter((c) => ex.some((e) => e.cat === c));
   const k = toKey(date);
-  const cls = [inMonth ? '' : 'out', ex.length ? 'has' : '', k === today ? 'today' : ''].join(' ');
-  const label = `${fmtDay(k, { weekday: 'long', month: 'long', day: 'numeric' })}${ex.length ? `, ${ex.length} exercises: ${cats.join(', ')}` : ''}`;
+  const plan = state.plan[k];
+  const cls = [inMonth ? '' : 'out', ex.length ? 'has' : '', k === today ? 'today' : '', plan && !ex.length ? 'plan-' + (plan.status || 'planned') : ''].join(' ');
+  const label = `${fmtDay(k, { weekday: 'long', month: 'long', day: 'numeric' })}${ex.length ? `, ${ex.length} exercises: ${cats.join(', ')}` : ''}${plan && !ex.length ? `, ${plan.status === 'skipped' ? 'skipped' : 'planned'}: ${plan.title}` : ''}`;
   return `<button class="${cls}" data-day="${k}" aria-label="${esc(label)}">
     <span class="d">${date.getDate()}</span>
-    <span class="dots">${cats.map((c) => `<span class="dot ${catClass(c)}"></span>`).join('')}</span>
+    <span class="dots">${cats.map((c) => `<span class="dot ${catClass(c)}"></span>`).join('')}${plan && !ex.length ? '<span class="plan-mark"></span>' : ''}</span>
   </button>`;
 }
 
@@ -76,7 +77,7 @@ export function renderCalendar(view, ctx) {
     </div>
     <div class="cal-head" aria-hidden="true">${weekdays.map((w) => `<span>${w}</span>`).join('')}</div>
     <div class="cal">${cells.join('')}</div>
-    <div class="legend">${CATS.map((c) => `<span><i class="dot ${catClass(c)}"></i>${c}</span>`).join('')}</div>
+    <div class="legend">${CATS.map((c) => `<span><i class="dot ${catClass(c)}"></i>${c}</span>`).join('')}<span><i class="plan-mark"></i>Planned</span></div>
 
   `;
   view.replaceChildren(root);
