@@ -103,7 +103,7 @@ export function renderCoach(view, ctx) {
       ${canListen() ? `<button class="round-btn mic ${ui.listening ? 'rec' : ''}" type="button" data-act="mic" ${hasKey() && !ui.busy ? '' : 'disabled'} aria-label="${ui.listening ? 'Stop listening' : 'Speak a message'}">${MIC}</button>` : ''}
       <button class="round-btn send" type="submit" ${ui.busy || !hasKey() ? 'disabled' : ''} aria-label="Send">${SEND}</button>
     </form>
-    ${ui.listening ? '<div class="listening-hint small muted">Listening… tap the mic again to stop</div>' : ''}
+    ${ui.listening ? '<div class="listening-hint small muted">Listening… tap the mic to stop. Then check the text and tap send.</div>' : ''}
   `;
   view.replaceChildren(root);
   const rerender = () => { if (ctx.tab === 'coach') renderCoach(view, ctx); };
@@ -182,7 +182,7 @@ export function renderCoach(view, ctx) {
           },
           onEnd: (finalText) => {
             ui.listening = false;
-            const autoSend = state.settings.voiceAutoSend !== false;
+            const autoSend = state.settings.voiceAutoSend === true;
             if (finalText && autoSend) send(ui.draft);
             else rerender();
           },

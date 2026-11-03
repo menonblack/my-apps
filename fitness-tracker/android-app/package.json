@@ -1,0 +1,20 @@
+{
+  "name": "lift-log-android",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Android (Capacitor) wrapper for the Lift Log web app in ../web",
+  "scripts": {
+    "copy-web": "rm -rf www && cp -r ../web www",
+    "sync": "npm run copy-web && npx cap sync android"
+  },
+  "dependencies": {
+    "@capacitor-community/speech-recognition": "7.0.1",
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.0"
+  }
+}

@@ -57,7 +57,7 @@ document.addEventListener('visibilitychange', () => {
 await load();
 render();
 
-if ('serviceWorker' in navigator && location.protocol === 'https:') {
+if ('serviceWorker' in navigator && location.protocol === 'https:' && !self.Capacitor?.isNativePlatform?.()) {
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register('sw.js').catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => {

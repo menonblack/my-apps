@@ -30,6 +30,17 @@ Model: Claude Opus 5.5 by default. Sonnet 5.5 or Haiku 5.5 can be picked in Sett
 - Coach cannot delete logged workouts. It can only plan from today up to 90 days ahead. It asks before changing more than 3 days at once.
 - Memories are visible and deletable in Settings. A chat's instructions are fixed when it starts, so profile and rule edits apply from the next **New chat**.
 
+## Android app (APK)
+
+`android-app/` wraps the same `web/` folder with Capacitor 8. The workflow `.github/workflows/fitness-apk.yml` runs on every push to the `release` branch, on any `v*` tag, or by hand. It generates the Android project, applies `scripts/prepare-android.mjs` (version, camera permission, icons, splash), builds a debug APK and attaches `LiftLog.apk` to a GitHub Release.
+
+- Direct download of the newest build: https://github.com/menonblack/my-apps/releases/latest/download/LiftLog.apk
+- **Native voice:** in the APK the Coach mic opens Android's built-in Google voice-typing dialog (`@capacitor-community/speech-recognition`).
+- **Backups:** the APK writes the backup file to Documents and opens the share sheet (Drive, Files, email…).
+- **Signing:** `android-app/signing/liftlog-debug.keystore` is a standard Android *debug* key (password `android`). It's committed so every build has the same signature and updates install over the top. It protects nothing secret, but anyone could use it to sign an APK that installs over this one, so only install APKs from this repo's Releases. A private release key kept in a GitHub secret would close that gap.
+- **Updating:** push to `release` (or tag `v1.2.3`). A new release appears with a higher versionCode. Download it and install over the top; data is kept. Uninstalling deletes the app's data, so back up first.
+- The APK and the Chrome-installed web app keep **separate** data. To move data, use Save backup in one and Restore in the other.
+
 ## Deploy
 
 `.github/workflows/fitness-pages.yml` publishes `fitness-tracker/web` to the `gh-pages` branch under `/fitness/` on every push. GitHub Pages serves that branch. Bump `VERSION` in `web/sw.js` on each release so installed apps pick up the new files.

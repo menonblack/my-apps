@@ -1,7 +1,7 @@
 // Calendar tab: month view with muscle-colour dots, plus backup / restore.
 import { state, save, exportData, parseBackup, restoreData } from './store.js';
 import { CATS, catClass, esc, ICONS, toast, toKey, todayKey, fromKey, fmtDay } from './util.js';
-import { saveFile } from './platform.js';
+import { saveFile, isNative } from './platform.js';
 
 const ui = { y: null, m: null, pending: null };
 
@@ -61,7 +61,7 @@ export function renderCalendar(view, ctx) {
 
     <div class="card stack" style="margin-bottom:16px">
       <div class="row"><strong class="grow">Backup</strong><span class="muted small tabular">${state.settings.lastBackup ? 'Last saved ' + esc(fmtDay(state.settings.lastBackup)) : 'Never saved'}</span></div>
-      <div class="muted small">Your data lives only on this phone. The file goes to your Downloads folder (API key never included).</div>
+      <div class="muted small">Your data lives only on this phone. The file goes to your ${isNative() ? 'Documents' : 'Downloads'} folder (API key never included).</div>
       <div class="row">
         <button class="btn grow" data-act="backup">Save backup</button>
         <button class="btn grow" data-act="restore">Restore</button>
@@ -107,11 +107,11 @@ export function renderCalendar(view, ctx) {
       case 'backup': {
         const name = `liftlog-backup-${todayKey()}.json`;
         try {
-          await saveFile(name, JSON.stringify(exportData(), null, 1));
+          const where = await saveFile(name, JSON.stringify(exportData(), null, 1));
           state.settings.lastBackup = todayKey();
           save('settings');
           rerender();
-          toast(`Saved ${name} to Downloads`);
+          toast(`Saved ${name} to ${where}`);
         } catch (err) {
           toast('Could not save the backup: ' + err.message);
         }
