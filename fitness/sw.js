@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION on every deploy so phones fetch the new files.
-const VERSION = 'v6';
+const VERSION = 'v7';
 const CACHE = 'liftlog-' + VERSION;
 const ASSETS = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',

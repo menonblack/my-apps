@@ -50,7 +50,7 @@ export function renderSettings(view, ctx) {
     <div class="card stack">
       ${(() => { const u = usageSummary(); return `<div class="row"><span class="grow">Estimated Claude cost</span><span class="tabular"><strong>${esc(u.todayText)}</strong> today · <strong>${esc(u.monthText)}</strong> this month</span></div>
       <div class="small muted">Estimated on this phone from token counts at list prices (${u.calls} request${u.calls === 1 ? '' : 's'} this month). Your real bill is in the Anthropic Console, where you can also set a monthly spend limit.</div>`; })()}
-      ${canListen() ? `<label class="row toggle"><input type="checkbox" id="voice-auto" ${state.settings.voiceAutoSend !== false ? 'checked' : ''}><span class="grow">Send voice messages automatically when I stop talking</span></label>` : '<div class="small muted">Voice input isn’t available in this browser; use the mic on your keyboard.</div>'}
+      ${canListen() ? `<label class="row toggle"><input type="checkbox" id="voice-auto" ${state.settings.voiceAutoSend === true ? 'checked' : ''}><span class="grow">Send voice messages automatically (off = review the text first)</span></label>` : '<div class="small muted">Voice input isn’t available in this browser; use the mic on your keyboard.</div>'}
       ${canSpeak() ? `<label class="row toggle"><input type="checkbox" id="voice-speak" ${state.settings.speakReplies ? 'checked' : ''}><span class="grow">Read Coach replies aloud</span></label>` : ''}
       <div class="small muted">Voice uses your phone's own speech service, so it adds no Claude cost: your words become text first.</div>
     </div>
