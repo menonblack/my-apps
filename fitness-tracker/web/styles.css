@@ -242,3 +242,15 @@ a { color: var(--accent); }
 .composer textarea { flex: 1; min-height: var(--tap); max-height: 140px; padding: 12px 14px; border-radius: 22px; border: 1px solid var(--line); background: var(--surface-2); resize: none; outline: none; font-size: 16px; line-height: 1.35; }
 .composer textarea:focus { border-color: var(--accent); }
 .composer .btn { border-radius: 22px; }
+
+/* ---------- Voice / chat composer ---------- */
+.round-btn { width: var(--tap); height: var(--tap); border-radius: 50%; border: 0; flex: none; display: grid; place-items: center; background: var(--surface-2); color: var(--fg); }
+.round-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.round-btn.send { background: var(--accent); color: var(--accent-ink); }
+.round-btn:disabled { opacity: .4; }
+.round-btn.mic.rec { background: var(--danger); color: #fff; animation: pulse 1.2s infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 60%, transparent); } 70% { box-shadow: 0 0 0 14px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
+.listening-hint { position: sticky; bottom: calc(var(--tabbar-h) + var(--sab) - 14px); text-align: center; background: var(--bg); }
+.icon-btn.on { color: var(--accent); }
+.toggle { min-height: var(--tap); cursor: pointer; }
+.toggle input { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }

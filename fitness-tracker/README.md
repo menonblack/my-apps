@@ -11,6 +11,8 @@ A bare-bones, offline-first personal fitness tracker for Android. Plain HTML/CSS
 - **Body**: check-ins with photo, weight (lb), height (in, remembered), optional tape waist (in) and date. **Estimate from photo** asks Claude for a rough waist and body-fat range, labelled *est.* A tape measurement overrides the estimate in trends. Only a ~240 px thumbnail is kept. Weight and waist tiles show sparklines. **Write progress report** sends check-ins plus training stats (workout days in the last 28 days and Epley e1RM change per lift) to Claude for a report under 170 words.
 - **Coach**: chat with Claude as a workout partner. It reads your log, plan and check-ins through tools. It can plan days, skip or cancel workouts, log what you say you did, and save memories about you. Every change shows an **Undo** button. Your profile, ground rules and memories are in Settings.
 
+**Voice:** Coach has a mic button. Your phone's speech service turns speech into text, which is sent like a typed message (no extra Claude cost). Replies can be read aloud. Settings shows an estimated Claude spend for today and this month, worked out from the token counts each response reports.
+
 Units are lb and inches. Data stays on the device (IndexedDB). There are no accounts and no backend. Log and Calendar work fully without an API key.
 
 ## Claude API key
