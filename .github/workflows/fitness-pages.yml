@@ -1,0 +1,30 @@
+name: Deploy Lift Log to GitHub Pages
+
+on:
+  push:
+    branches: [main, claude/fitness-tracker-android-hfgd3h]
+    paths:
+      - 'fitness-tracker/web/**'
+      - '.github/workflows/fitness-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish web app to gh-pages branch (served at /my-apps/fitness/)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./fitness-tracker/web
+          destination_dir: fitness
+          keep_files: true
+          enable_jekyll: false

@@ -1,0 +1,10 @@
+{
+  "appId": "io.github.menonblack.liftlog",
+  "appName": "Lift Log",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "webContentsDebuggingEnabled": false
+  }
+}
