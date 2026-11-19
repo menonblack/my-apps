@@ -117,7 +117,7 @@ export function renderCoach(view, ctx) {
   requestAnimationFrame(() => root.querySelector('#chat').lastElementChild?.scrollIntoView({ block: 'end' }));
 
   const go = async () => {
-    ui.busy = true; ui.error = null; rerender();
+    ui.busy = true; self.__liftlogBusy = true; ui.error = null; rerender();
     try {
       await runCoach(rerender);
       if (state.settings.speakReplies) speak(lastReplyText(chat));
@@ -125,6 +125,7 @@ export function renderCoach(view, ctx) {
       ui.error = err;
     } finally {
       ui.busy = false;
+      self.__liftlogBusy = false;
       rerender();
     }
   };

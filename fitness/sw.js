@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION on every deploy so phones fetch the new files.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = 'liftlog-' + VERSION;
 const ASSETS = [
   './', 'index.html', 'styles.css', 'manifest.webmanifest',
@@ -26,22 +26,28 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+// Network first for the app's own files (revalidated, so a new deploy shows up the
+// moment you open the app), with the cached copy as fallback when offline or when
+// the network is too slow (3 s). Your data lives in IndexedDB and is never touched.
+const NET_TIMEOUT_MS = 3000;
+
+function networkFirst(req, cacheKey) {
+  return caches.open(CACHE).then((cache) => new Promise((resolve) => {
+    let done = false;
+    const fallback = () => cache.match(cacheKey || req, { ignoreSearch: true }).then((hit) => hit || Response.error());
+    const timer = setTimeout(() => { fallback().then((r) => { if (!done && r.type !== 'error') { done = true; resolve(r); } }); }, NET_TIMEOUT_MS);
+    fetch(req, { cache: 'no-cache' })
+      .then((r) => {
+        if (r.ok) cache.put(cacheKey || req, r.clone());
+        if (!done) { done = true; clearTimeout(timer); resolve(r); }
+      })
+      .catch(() => { clearTimeout(timer); if (!done) { done = true; fallback().then(resolve); } });
+  }));
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  if (req.mode === 'navigate') {
-    // Network first so a fresh deploy shows up; cached shell when offline.
-    e.respondWith(
-      fetch(req)
-        .then((r) => { const copy = r.clone(); caches.open(CACHE).then((c) => c.put('index.html', copy)); return r; })
-        .catch(() => caches.match('index.html', { ignoreSearch: true }))
-    );
-    return;
-  }
-  e.respondWith(
-    caches.match(req, { ignoreSearch: true }).then((hit) => hit || fetch(req).then((r) => {
-      if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); }
-      return r;
-    }))
-  );
+  if (req.mode === 'navigate') { e.respondWith(networkFirst(req, 'index.html')); return; }
+  e.respondWith(networkFirst(req));
 });

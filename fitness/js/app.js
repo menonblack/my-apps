@@ -1,5 +1,5 @@
 // App shell: loads data, switches tabs, registers the service worker.
-import { load } from './store.js';
+import { load, flush } from './store.js';
 import { todayKey, isValidKey, toast, esc } from './util.js';
 import { renderLog } from './log.js';
 import { renderCalendar } from './calendar.js';
@@ -57,10 +57,28 @@ document.addEventListener('visibilitychange', () => {
 await load();
 render();
 
-if ('serviceWorker' in navigator && location.protocol === 'https:' && !self.Capacitor?.isNativePlatform?.()) {
+// Updates: app files are fetched fresh whenever you open the app (see sw.js). If the
+// offline worker itself changes, reload automatically once it is safe — saved data
+// stays in IndexedDB, so nothing is lost.
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost') && !self.Capacitor?.isNativePlatform?.()) {
   const hadController = !!navigator.serviceWorker.controller;
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController) toast('App updated', { label: 'Reload', run: () => location.reload() });
+  const regP = navigator.serviceWorker.register('sw.js').catch(() => null);
+  const typing = () => { const a = document.activeElement; return a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.value; };
+  let pending = false;
+  const reloadWhenSafe = async () => {
+    if (self.__liftlogBusy || typing()) { pending = true; return; }
+    pending = false;
+    await flush();
+    try { sessionStorage.setItem('liftlog:updated', '1'); } catch { /* ignore */ }
+    location.reload();
+  };
+  navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadController) reloadWhenSafe(); });
+  // Check for a new version each time the app comes back to the screen.
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible') return;
+    if (pending) return reloadWhenSafe();
+    (await regP)?.update().catch(() => {});
   });
+  document.addEventListener('focusout', () => { if (pending) setTimeout(reloadWhenSafe, 500); });
+  try { if (sessionStorage.getItem('liftlog:updated')) { sessionStorage.removeItem('liftlog:updated'); toast('Updated to the latest version'); } } catch { /* ignore */ }
 }
