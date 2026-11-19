@@ -38,7 +38,8 @@ Model: Claude Opus 5.5 by default. Sonnet 5.5 or Haiku 5.5 can be picked in Sett
 - **Native voice:** in the APK the Coach mic opens Android's built-in Google voice-typing dialog (`@capacitor-community/speech-recognition`).
 - **Backups:** the APK writes the backup file to Documents and opens the share sheet (Drive, Files, email…).
 - **Signing:** `android-app/signing/liftlog-debug.keystore` is a standard Android *debug* key (password `android`). It's committed so every build has the same signature and updates install over the top. It protects nothing secret, but anyone could use it to sign an APK that installs over this one, so only install APKs from this repo's Releases. A private release key kept in a GitHub secret would close that gap.
-- **Updating:** push to `release` (or tag `v1.2.3`). A new release appears with a higher versionCode. Download it and install over the top; data is kept. Uninstalling deletes the app's data, so back up first.
+- **Live updates (no reinstall):** each Pages deploy also publishes `fitness/bundle.zip` and `fitness/bundle.json` (build id + SHA-256). On launch and on resume, the APK checks `bundle.json`. If the build is newer, it downloads and verifies the zip with `@capawesome/capacitor-live-update` (self-hosted, no cloud account) and reloads into it. The app keeps the same storage, so data is kept. A build that doesn't call `ready()` within 15 s is rolled back automatically. Settings → App shows the version and has **Check for updates now**.
+- **New APK needed only** when native parts change (Capacitor plugins, permissions, icons). Push to `release` (or tag `v1.2.3`); a new release appears with a higher versionCode. Install it over the top; data is kept. Uninstalling deletes the app's data, so back up first.
 - The APK and the Chrome-installed web app keep **separate** data. To move data, use Save backup in one and Restore in the other.
 
 ## Deploy
