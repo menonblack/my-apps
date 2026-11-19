@@ -43,7 +43,7 @@ Model: Claude Opus 5.5 by default. Sonnet 5.5 or Haiku 5.5 can be picked in Sett
 
 ## Deploy
 
-`.github/workflows/fitness-pages.yml` publishes `fitness-tracker/web` to the `gh-pages` branch under `/fitness/` on every push. GitHub Pages serves that branch. Bump `VERSION` in `web/sw.js` on each release so installed apps pick up the new files.
+`.github/workflows/fitness-pages.yml` publishes `fitness-tracker/web` to the `gh-pages` branch under `/fitness/` on every push. GitHub Pages serves that branch. **Instant updates:** the service worker fetches the app's files network-first (revalidated, with a 3-second fallback to the offline cache). A new deploy therefore shows up the next time the app is opened, with no reinstall and no tap needed. If `sw.js` itself changes, the app saves pending data and reloads itself, unless you're typing or Coach is replying. Data lives in IndexedDB and is never touched by updates. Bump `VERSION` in `web/sw.js` when the file list changes.
 
 ## Manual test checklist
 

@@ -73,7 +73,7 @@ export async function saveNow(key) {
   try { localStorage.setItem('liftlog:' + key, JSON.stringify(value)); } catch { /* quota */ }
 }
 
-export function flush() { for (const k of Object.keys(timers)) saveNow(k); }
+export function flush() { return Promise.all(Object.keys(timers).map((k) => saveNow(k))); }
 addEventListener('pagehide', flush);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flush(); });
 
