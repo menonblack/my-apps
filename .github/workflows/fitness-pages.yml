@@ -1,0 +1,41 @@
+name: Deploy Lift Log to GitHub Pages
+
+on:
+  push:
+    branches: [main, claude/fitness-tracker-android-hfgd3h]
+    paths:
+      - 'fitness-tracker/web/**'
+      - '.github/workflows/fitness-pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build site plus live-update bundle for the Android app
+        run: |
+          mkdir -p _site
+          cp -r fitness-tracker/web/. _site/
+          ID="$(date -u +%Y%m%d)-${GITHUB_RUN_NUMBER}-${GITHUB_SHA::7}"
+          echo "{\"id\":\"$ID\"}" > _site/build.json
+          (cd _site && zip -qr ../bundle.zip .)
+          mv bundle.zip _site/bundle.zip
+          SHA=$(sha256sum _site/bundle.zip | cut -d' ' -f1)
+          echo "{\"id\":\"$ID\",\"url\":\"https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/fitness/bundle.zip?v=$ID\",\"sha256\":\"$SHA\"}" > _site/bundle.json
+          cat _site/bundle.json
+      - name: Publish web app to gh-pages branch (served at /my-apps/fitness/)
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+          destination_dir: fitness
+          keep_files: true
+          enable_jekyll: false

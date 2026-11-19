@@ -1,0 +1,77 @@
+name: Build Lift Log APK
+
+# Builds a signed debug APK of fitness-tracker/web wrapped with Capacitor and
+# attaches it to a GitHub Release. Runs on every push to the "release" branch,
+# on any "v*" tag, or by hand from the Actions tab.
+on:
+  push:
+    branches: [release]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: fitness-tracker/android-app
+    env:
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: fitness-tracker/android-app/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Install Capacitor
+        run: npm ci
+
+      - name: Generate Android project
+        run: |
+          npm run copy-web
+          npx cap add android
+          node scripts/prepare-android.mjs "$VERSION_CODE" "$VERSION_NAME"
+          npx cap sync android
+
+      - name: Use the app's fixed debug signing key (so updates install over the top)
+        run: |
+          mkdir -p ~/.android
+          cp signing/liftlog-debug.keystore ~/.android/debug.keystore
+
+      - name: Build APK
+        working-directory: fitness-tracker/android-app/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+          cp app/build/outputs/apk/debug/app-debug.apk ../LiftLog.apk
+          ls -la ../LiftLog.apk
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('lift-log-v1.0.{0}', github.run_number) }}
+          target_commitish: ${{ github.sha }}
+          name: Lift Log 1.0.${{ github.run_number }}
+          make_latest: true
+          files: fitness-tracker/android-app/LiftLog.apk
+          body: |
+            Lift Log Android app (debug-signed APK), version 1.0.${{ github.run_number }}.
+
+            **Install:** open https://github.com/${{ github.repository }}/releases/latest/download/LiftLog.apk in Chrome on your phone, download, tap the file, allow "Install unknown apps" for Chrome if asked, then Install.
+            Installing a newer release over the top keeps your data.
