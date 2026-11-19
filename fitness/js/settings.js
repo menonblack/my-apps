@@ -3,6 +3,8 @@ import { state, save, saveNow } from './store.js';
 import { esc, ICONS, toast, twoStep, num, fmtNum } from './util.js';
 import { MODELS, currentModel, createMessage, hasKey, usageSummary } from './claude.js';
 import { canListen, canSpeak } from './voice.js';
+import { currentBuildId, checkForUpdate } from './updater.js';
+import { isNative } from './platform.js';
 
 const ui = { showKey: false, testing: false, testMsg: null };
 
@@ -80,12 +82,18 @@ export function renderSettings(view, ctx) {
       ${state.coach.memories.length ? `<ul class="mem-list">${state.coach.memories.map((m) => `<li><span class="grow">${esc(m.text)}</span><button class="icon-btn" data-forget="${esc(m.id)}" aria-label="Delete memory">${ICONS.trash}</button></li>`).join('')}</ul>` : '<div class="muted small">None yet.</div>'}
       <div class="row"><input id="new-mem" class="input grow" placeholder="Add a memory yourself"><button class="btn" data-act="add-mem">Add</button></div>
     </div>
+    <h2 class="section-title">App</h2>
+    <div class="card stack">
+      <div class="row"><span class="grow">Version</span><span class="tabular muted" id="build-id">…</span></div>
+      ${isNative() ? '<div class="small muted">Updates download automatically when you open the app. Your data is kept.</div><button class="btn block" data-act="check-update">Check for updates now</button>' : '<div class="small muted">Updates load automatically when you open the app.</div>'}
+    </div>
     <p class="muted small" style="text-align:center;margin-top:24px">Lift Log · data stays on this device</p>
   `;
   view.replaceChildren(root);
   const rerender = () => { if (ctx.tab === 'settings') renderSettings(view, ctx); };
 
   root.querySelector('#model').addEventListener('change', (e) => { state.settings.model = e.target.value; save('settings'); toast('Model saved'); });
+  currentBuildId().then((id) => { const el = root.querySelector('#build-id'); if (el) el.textContent = id || 'built-in copy'; });
   root.querySelector('#voice-auto')?.addEventListener('change', (e) => { state.settings.voiceAutoSend = e.target.checked; save('settings'); });
   root.querySelector('#voice-speak')?.addEventListener('change', (e) => { state.settings.speakReplies = e.target.checked; save('settings'); });
   root.querySelector('#height').addEventListener('change', (e) => { const h = num(e.target.value); state.settings.height = h && h > 30 && h < 100 ? h : null; save('settings'); toast(state.settings.height ? 'Height saved' : 'Height cleared'); });
@@ -127,6 +135,15 @@ export function renderSettings(view, ctx) {
           ui.testing = false;
           rerender();
         }
+        break;
+      }
+      case 'check-update': {
+        b.disabled = true; b.textContent = 'Checking…';
+        const r = await checkForUpdate({ manual: true });
+        if (r === 'none') toast("You're on the latest version");
+        else if (r === 'pending') toast('Update ready. It applies next time you open the app.');
+        else if (r.startsWith('error:')) toast("Couldn't check for updates: " + r.slice(6));
+        b.disabled = false; b.textContent = 'Check for updates now';
         break;
       }
       case 'add-mem': {

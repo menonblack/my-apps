@@ -6,6 +6,7 @@ import { renderCalendar } from './calendar.js';
 import { renderBody } from './body.js';
 import { renderCoach } from './coach.js';
 import { renderSettings } from './settings.js';
+import { initLiveUpdates } from './updater.js';
 
 const view = document.getElementById('view');
 const ctx = {
@@ -56,6 +57,7 @@ document.addEventListener('visibilitychange', () => {
 
 await load();
 render();
+initLiveUpdates();
 
 // Updates: app files are fetched fresh whenever you open the app (see sw.js). If the
 // offline worker itself changes, reload automatically once it is safe — saved data
